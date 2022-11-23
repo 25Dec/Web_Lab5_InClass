@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import Chat from "./components/Chat";
 import Sidebar from "./components/Sidebar";
-import Puhser from "pusher-js";
+import Pusher from "pusher-js";
 import axios from "./components/axios";
 import Login from "./components/Login";
 import { useStateValue } from "./components/StateProvider";
@@ -18,8 +18,8 @@ const App = () => {
 	}, []);
 
 	useEffect(() => {
-		const pusher = new Pusher("", {
-			cluster: "",
+		const pusher = new Pusher("41ed82443c7116bc0201", {
+			cluster: "ap1",
 		});
 
 		const channel = pusher.subcribe("messages");
@@ -38,7 +38,7 @@ const App = () => {
 			{!user ? (
 				<Login />
 			) : (
-				<div className="app_body">
+				<div className="app__body">
 					<Sidebar messages={messages} />
 					<Chat messages={messages} />
 				</div>
