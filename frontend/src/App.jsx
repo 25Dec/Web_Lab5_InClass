@@ -1,34 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import "./App.css";
+import Chat from "./components/Chat";
+import Sidebar from "./components/Sidebar";
+import Puhser from "pusher-js";
+import axios from "./components/axios";
+import Login from "./components/Login";
+import { useStateValue } from "./components/StateProvider";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+	const [messages, setMessages] = useState([]);
+	const [{ user }, dispatch] = useStateValue();
 
-  return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
-}
+	useEffect(() => {
+		axios.get("/messages/sync").then((res) => {
+			setMessages(res.data);
+		});
+	}, []);
 
-export default App
+	useEffect(() => {
+		const pusher = new Pusher("", {
+			cluster: "",
+		});
+
+		const channel = pusher.subcribe("messages");
+		channel.bind("inserted", (data) => {
+			setMessages([...messages, data]);
+		});
+
+		return () => {
+			channel.unbind_all();
+			channel.unsubcribe();
+		};
+	}, [messages]);
+
+	return (
+		<div className="app">
+			{!user ? (
+				<Login />
+			) : (
+				<div className="app_body">
+					<Sidebar messages={messages} />
+					<Chat messages={messages} />
+				</div>
+			)}
+		</div>
+	);
+};
+
+export default App;
